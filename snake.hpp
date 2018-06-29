@@ -20,7 +20,7 @@ class Snake
   private:
     const unsigned body_reserve_length = 32;
     const std::vector<Point> default_snake_pos 
-	{ {8, 20}, {8, 19}, {8, 18} };
+	{ {20, 8}, {19, 8}, {18, 8} };
 
     std::vector<std::vector<Content>> board_;
     std::vector<Point> body_;
@@ -91,27 +91,35 @@ class Snake
 	std::string buf("");
 	buf.reserve((sn.board_.size() + 2) * (sn.board_[0].size() + 3));
 
-	for (size_t i(0); i < sn.board_[0].size() + 2; i++)
+	for (size_t i(0); i < sn.board_.size() + 2; i++)
 	{
 	    buf.append("-");
 	}
 	buf.append("\n");
 
-	for (size_t i(0); i < sn.board_.size(); i++)
+	for (size_t y(sn.board_[0].size() - 1); (int)y > -1; y--)
 	{
 	    buf.append("|");
-	    for (size_t j(0); j < sn.board_[0].size(); j++)
+	    for (size_t x(0); x < sn.board_.size(); x++)
 	    {
-		switch (sn.board_[i][j])
+		switch (sn.board_[x][y])
 		{
 		    case Content::empty:
 			buf.append(" ");
 			break;
 		    case Content::body:
-			buf.append("#");
+			if (sn.body_.front().first == x &&
+			    sn.body_.front().second == y)
+			{
+			    buf.append("@");
+			}
+			else
+			{
+			    buf.append("#");
+			}
 			break;
 		    case Content::food:
-			buf.append("@");
+			buf.append("$");
 			break;
 		    default:
 			std::cerr << "Content reach end while normal using\n";
@@ -120,7 +128,7 @@ class Snake
 	    buf.append("|\n");
 	}
 	
-	for (size_t i(0); i < sn.board_[0].size() + 2; i++)
+	for (size_t i(0); i < sn.board_.size() + 2; i++)
 	{
 	    buf.append("-");
 	}
@@ -132,47 +140,30 @@ class Snake
 
     Info a_step(Direction dir)
     {
-	if ((int)dir == (int)dir_ + 2 ||
-	    (int)dir == (int)dir_ - 2)
+	if (is_backward(dir))
 	{
 	    dir = dir_;
+	}
+	else
+	{
+	    dir_ = dir;
 	}
 
 	auto& head(body_.front());
 
-	switch (dir)
+	switch (dir_)
 	{
 	    case Direction::left:
-		if (head.first == 0)
-		{
-		    info_.is_over = true;
-		    return info_;
-		}
-		check_next_space(board_[head.first - 1][head.second]);
+		check_next_point(Point(head.first - 1, head.second));
 		break;
 	    case Direction::right:
-		if (head.first == board_[0].size() - 1)
-		{
-		    info_.is_over = true;
-		    return info_;
-		}
-		check_next_space(board_[head.first + 1][head.second]);
+		check_next_point(Point(head.first + 1, head.second));
 		break;
 	    case Direction::up:
-		if (head.second == 0)
-		{
-		    info_.is_over = true;
-		    return info_;
-		}
-		check_next_space(board_[head.first][head.second - 1]);
+		check_next_point(Point(head.first, head.second + 1));
 		break;
 	    case Direction::down:
-		if (head.second == board_.size() - 1)
-		{
-		    info_.is_over = true;
-		    return info_;
-		}
-		check_next_space(board_[head.first][head.second + 1]);
+		check_next_point(Point(head.first, head.second - 1));
 		break;
 	    default:
 		std::cerr << "Content reach end while normal using\n";
@@ -217,16 +208,20 @@ class Snake
     }
 
   private:
-    void init_board(unsigned board_h = 20, unsigned board_w = 50)
+    void init_board(unsigned x = 50, unsigned y = 20)
     {
-	board_.resize(board_h, std::vector<Content>(board_w, Content::empty));
+	board_.resize(x, std::vector<Content>(y, Content::empty));
+
 	body_ = default_snake_pos;
 	body_.reserve(body_reserve_length);
 	dir_ = Direction::right;
-	gen_food();
+	//gen_food();
+	food_ = std::pair<size_t, size_t>(23, 8);
 	info_.food_pos = food_;
 	info_.distance.resize(4);
 	info_.is_over = false;
+
+	update_board();
 	for (unsigned d(0); d < (unsigned)Direction::end; d++)
 	{
 	    info_.distance[d] = distance_to_obstacle((Direction)d);
@@ -236,9 +231,9 @@ class Snake
     void gen_food()
     {
 	std::random_device rd;
-	std::mt19937 gen(rd);
+	std::mt19937 gen(rd());
 	std::uniform_int_distribution<size_t> 
-	    uid1(0, board_.size() - 1), uid2(0, board_[0].size());
+	    uid1(0, board_.size() - 1), uid2(0, board_[0].size() - 1);
 
 	food_.first = uid1(gen);
 	food_.second = uid2(gen);
@@ -252,43 +247,43 @@ class Snake
 	switch (d)
 	{
 	    case Direction::left:
-		for (auto i((int)head.first - 1); i >= 0; i--)
+		for (size_t i(head.first - 1); (int)i > -1; i--)
 		{
-		    dis++;
-		    if (board_[i][head.second] != Content::empty)
+		    if (board_[i][head.second] == Content::body)
 		    {
 			break;
 		    }
+		    dis++;
 		}
 		break;
 	    case Direction::right:
-		for (auto i(head.first + 1); i < board_[0].size(); i++)
+		for (size_t i(head.first + 1); i < board_.size(); i++)
 		{
-		    dis++;
-		    if (board_[i][head.second] != Content::empty)
+		    if (board_[i][head.second] == Content::body)
 		    {
 			break;
 		    }
+		    dis++;
 		}
 		break;
 	    case Direction::up:
-		for (auto i((int)head.second + 1); i >= 0; i--)
+		for (size_t i(head.second + 1); i < board_[0].size(); i++)
 		{
-		    dis++;
-		    if (board_[head.first][i] != Content::empty)
+		    if (board_[head.first][i] == Content::body)
 		    {
 			break;
 		    }
+		    dis++;
 		}
 		break;
 	    case Direction::down:
-		for (auto i(head.second - 1); i < board_.size(); i++)
+		for (size_t i(head.second - 1); (int)i > -1; i--)
 		{
-		    dis++;
-		    if (board_[head.first][i] != Content::empty)
+		    if (board_[head.first][i] == Content::body)
 		    {
 			break;
 		    }
+		    dis++;
 		}
 		break;
 	    default:
@@ -298,18 +293,25 @@ class Snake
 	return dis;
     }
 
-    void check_next_space(Content c)
+    void check_next_point(Point p)
     {
-	auto& head(body_.front());
+	if ((int)p.first < 0 || p.first > board_.size() - 1 ||
+	    (int)p.second < 0 || p.second > board_[0].size() - 1)
+	{
+	    info_.is_over = true;
+	    return;
+	}
 
-	switch(c)
+	switch(board_[p.first][p.second])
 	{
 	    case Content::empty:
+		board_[body_.back().first][body_.back().second] 
+			= Content::empty;
 		body_.pop_back();
-		body_.insert(body_.begin(), Point(head.first - 1, head.second));
+		body_.insert(body_.begin(), p);
 		break;
 	    case Content::food:
-		body_.insert(body_.begin(), Point(head.first - 1, head.second));
+		body_.insert(body_.begin(), p);
 		score_++;
 		gen_food();
 		info_.food_pos = food_;
@@ -321,9 +323,39 @@ class Snake
 		std::cerr << "Content reach end while normal using\n";
 	}
 	
+	update_board();
 	for (unsigned i(0); i < (unsigned)Direction::end; i++)
 	{
 	    info_.distance[i] = distance_to_obstacle((Direction)i);
 	}
+    }
+
+    void update_board()
+    {
+	for (auto& i : body_)
+	{
+	    board_[i.first][i.second] = Content::body;
+	}
+	board_[food_.first][food_.second] = Content::food;
+    }
+
+    bool is_backward(Direction dir)
+    {
+	if ((int)dir_ % 2 == 0)
+	{
+	    if ((int)dir == (int)dir_ + 1)
+	    {
+		return true;
+	    }
+	}
+	else
+	{
+	    if ((int)dir == (int)dir_ - 1)
+	    {
+		return true;
+	    }
+	}
+
+	return false;
     }
 };

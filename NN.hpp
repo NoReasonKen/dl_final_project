@@ -3,16 +3,16 @@
 #include <random>
 #include <iomanip>
 
-class nn
+class NN
 {
 
 	/*
-	 * after create nn, you should use init() to initialize all parameter of all weight
+	 * after create NN, you should use init() to initialize all parameter of all weight
 	 * use forward() will calculate all neuron
 	 * use delete_w(layer, input_neu, output_neu) will make the corresponding weight zero
 	 */
   public:
-	nn(uint32_t layer, uint32_t neu): weight(layer - 2, std::vector<std::vector<double>>(neu, std::vector<double>(neu))), 
+	NN(uint32_t layer, uint32_t neu): weight(layer - 2, std::vector<std::vector<double>>(neu, std::vector<double>(neu))), 
 		neuron(layer - 1, std::vector<double>(neu)), out_neuron(3), out_weight(3, std::vector<double>(neu)){}
 
 	// initialize, you should input the input neuron
@@ -63,7 +63,7 @@ class nn
 			weight[layer][output_neu][input_neu] = 0;
 	}
 
-	friend std::ostream& operator << (std::ostream& os, nn n)
+	friend std::ostream& operator << (std::ostream& os, NN n)
 	{
 		os << "neuron" << std::endl;
 		for(uint32_t i = 0; i != n.neuron.size(); ++i)
@@ -105,7 +105,6 @@ class nn
 		return os;
 	}
 
-  private:
 	std::vector<std::vector<std::vector<double>>> weight;
 	std::vector<std::vector<double>> neuron;
 	std::vector<double> out_neuron;

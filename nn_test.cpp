@@ -6,8 +6,8 @@
 
 int main()
 {
-    nn a(5, 3);
-    a.init(std::vector<double>({0.2, 0.3, 0.4}));
+    nn a(5, 2);
+    a.init(std::vector<double>({0.2, 0.3}));
     std::cout << "initialize\n" << std::endl;
     a.forward();
 

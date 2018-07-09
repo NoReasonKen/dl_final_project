@@ -105,7 +105,7 @@ class NN
 		return os;
 	}
 
-	std::vector<std::vector<std::vector<double>>> weight;
+	std::vector<std::vector<std::vector<double>>>& weight;
 	std::vector<std::vector<double>> neuron;
 	std::vector<double> out_neuron;
 	std::vector<std::vector<double>> out_weight;

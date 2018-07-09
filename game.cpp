@@ -55,7 +55,7 @@ int main()
 	    score[num_person] = game.get_score();
 	}
 
-	sort();
+	ea.selection_sort(score);
 	ea.cross_over();
 	ea.mutate();	
     }

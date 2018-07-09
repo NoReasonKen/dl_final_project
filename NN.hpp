@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <random>
 #include <iomanip>
 #include "ea.hpp"

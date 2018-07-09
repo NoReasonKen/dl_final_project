@@ -18,6 +18,8 @@ class EA
   public: 
     const static unsigned parent_population = 10;
     const static unsigned child_population = 50;
+    const static unsigned population = parent_population
+				    + child_population;
     std::vector<Weights> people_weights;
 
     EA (const std::vector<Weights>& vw)
@@ -83,6 +85,24 @@ class EA
 		for (auto& j : i)
 		    for (auto& k : j)
 			k = urd_(gen_);
+	}
+    }
+
+    void selection_sort(std::vector<unsigned>& score)
+    {
+	for (size_t i(0); i < parent_population; i++)
+	{
+	    size_t max_idx(i);
+	    for (size_t j(i + 1); j < population; j++)
+	    {
+		if (score[i] < score[j])
+		{
+		    max_idx = j;
+		}
+	    }
+
+	    std::swap(score[i], score[max_idx]);
+	    std::swap(people_weights[i], people_weights[max_idx]);
 	}
     }
 

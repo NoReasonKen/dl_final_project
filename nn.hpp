@@ -12,7 +12,7 @@ class nn
 	 * use delete_w(layer, input_neu, output_neu) will make the corresponding weight zero
 	 */
   public:
-	nn(int layer, int neu): weight(layer - 2, std::vector<std::vector<double>>(neu, std::vector<double>(neu))), 
+	nn(uint32_t layer, uint32_t neu): weight(layer - 2, std::vector<std::vector<double>>(neu, std::vector<double>(neu))), 
 		neuron(layer - 1, std::vector<double>(neu)), out_neuron(3), out_weight(3, std::vector<double>(neu)){}
 
 	// initialize, you should input the input neuron
@@ -40,14 +40,14 @@ class nn
 
 	void forward()
 	{
-		for(size_t i = 0; i != neuron.size(); ++i)
-			for(size_t j = 0; j != neuron[i].size(); ++j)
+		for(uint32_t i = 0; i != neuron.size(); ++i)
+			for(uint32_t j = 0; j != neuron[i].size(); ++j)
 			{
 					if(i != neuron.size() - 1)
 						neuron[i + 1][j] = dot(neuron[i], weight[i][j]);
 			}
 
-		for(size_t i = 0; i != out_neuron.size(); ++i)
+		for(uint32_t i = 0; i != out_neuron.size(); ++i)
 			out_neuron[i] = dot(neuron[neuron.size() - 1], out_weight[i]);
 	}
 
@@ -118,7 +118,7 @@ class nn
 			std::cerr << "two vectors are different size!" << std::endl;
 
 		double dot_sum = 0.0;
-		for(size_t i = 0; i != v1.size(); ++i)
+		for(uint32_t i = 0; i != v1.size(); ++i)
 			dot_sum += v1[i] * v2[i];
 
 		return dot_sum;

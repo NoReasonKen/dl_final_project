@@ -1,20 +1,23 @@
 #include "snake.hpp"
-#include "NN.hpp"
+#include "nn.hpp"
 #include "ea.hpp"
 #include <algorithm>
 
 #define H_LAYER_NUM 3
 #define H_LAYER_CH 6
-#define EPOCH 100
+#define EPOCH 10000
+
+void play(Snake&, Snake::Info&, NN&);
 
 int main()
 {
-    unsigned population = EA::parent_population + EA::child_population;
+    std::vector<float> score(EA::pop);
+    Snake::Info info;
 
     EA ea
     (
 	std::vector<EA::Weights> 
-	(EA::parent_population + EA::child_population, 
+	(EA::parent_pop + EA::child_pop, 
 	    EA::Weights
 	    (H_LAYER_NUM + 2, std::vector<std::vector<float>>
 		(H_LAYER_CH, std::vector<float>(H_LAYER_CH))
@@ -22,42 +25,74 @@ int main()
 	)
     );
     ea.init_people();
-    ea.cross_over();
+
+    for (unsigned p_idx(0); p_idx < EA::parent_pop; p_idx++)
+    {
+	Snake game;
+	NN nn(H_LAYER_NUM + 2, H_LAYER_CH, ea.people_weights[p_idx]);
+
+	info = game.get_info(); 
+	nn.init(info);
+	play(game, info, nn);
+	score[p_idx] = game.get_score();
+    } 
+
+    ea.cross_over(score);
     ea.mutate();
 
-    std::vector<unsigned> score(population);
-    Snake::Info info;
-    Snake::Direction dir(Snake::Direction::right);
     for (unsigned epoch(0); epoch < EPOCH; epoch++)
     {
-	for (unsigned num_person(0); num_person < population; num_person++)
+	std::cout << "EPOCH " << epoch << ":\n";
+
+	for (unsigned p_idx(EA::parent_pop); p_idx < EA::pop; p_idx++)
 	{
 	    Snake game;
-	    NN nn(H_LAYER_NUM + 2, H_LAYER_CH, ea.people_weights[num_person]);
+	    NN nn
+	    (
+		H_LAYER_NUM + 2, H_LAYER_CH, 
+		ea.people_weights[p_idx]
+	    );
 
 	    info = game.get_info(); 
 	    nn.init(info);
-
-	    while (!info.is_over)
-	    {
-		nn.forward();
-		info = game.a_step
-		(
-		    (Snake::Direction)std::distance
-		    (
-			nn.out_neuron.begin(), 
-			std::max_element(nn.out_neuron.begin(), nn.out_neuron.end())
-		    );
-		)
-		nn.init(info);
-	    }
-
-	    score[num_person] = game.get_score();
+	    play(game, info, nn);
+	    score[p_idx] = game.get_score();
 	}
 
 	ea.selection_sort(score);
-	ea.cross_over();
+
+	std::cout << "score: ";
+	for (size_t i(0); i < EA::parent_pop; i++)
+	{
+	    std::cout << score[i] << " ";
+	}
+	std::cout << "\n";
+
+	//std::string str;
+	//std::cin >> str;
+
+	ea.cross_over(score);
 	ea.mutate();	
     }
+}
 
+void play(Snake& game, Snake::Info& info, NN& nn)
+{
+    while (!info.is_over)
+    {
+	nn.forward();
+	info = game.a_step
+	(
+	    (Snake::Direction)std::distance
+	    (
+		nn.out_neuron.begin(), 
+		std::max_element
+		(
+		    nn.out_neuron.begin(), 
+		    nn.out_neuron.begin() + 4
+		)
+	    )
+	);
+	nn.init(info);
+    }
 }

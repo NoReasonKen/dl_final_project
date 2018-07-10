@@ -1,3 +1,6 @@
+#ifndef SNAKE_HPP_
+#define SNAKE_HPP_
+
 #include <iostream>
 #include <random>
 #include <string>
@@ -25,19 +28,20 @@ class Snake
     std::vector<std::vector<Content>> board_;
     std::vector<Point> body_;
     Point food_;
-    unsigned score_;
+    float score_;
+    unsigned time_;
     Direction dir_;
     Info info_;
 
   public:
     Snake()
-	: score_(0)
+	: score_(0.0)
     {
 	init_board();
     }
 
     Snake(unsigned board_h, unsigned board_w)
-	: score_(0)
+	: score_(0.0)
     {
 	init_board(board_h, board_w);
     }
@@ -187,7 +191,7 @@ class Snake
 	return food_;
     }
 
-    unsigned get_score()
+    float get_score()
     {
 	return score_;
     }
@@ -215,8 +219,8 @@ class Snake
 	body_ = default_snake_pos;
 	body_.reserve(body_reserve_length);
 	dir_ = Direction::right;
-	//gen_food();
 	food_ = std::pair<size_t, size_t>(23, 8);
+	time_ = 0.0;
 	info_.food_pos = food_;
 	info_.distance.resize(4);
 	info_.is_over = false;
@@ -305,14 +309,23 @@ class Snake
 	switch(board_[p.first][p.second])
 	{
 	    case Content::empty:
-		board_[body_.back().first][body_.back().second] 
-			= Content::empty;
-		body_.pop_back();
-		body_.insert(body_.begin(), p);
-		break;
+		if (++time_ == 1000)
+		{
+		    info_.is_over = true;
+		    return;
+		}
+		else
+		{
+		    board_[body_.back().first][body_.back().second] 
+			    = Content::empty;
+		    body_.pop_back();
+		    body_.insert(body_.begin(), p);
+		    break;
+		}
 	    case Content::food:
 		body_.insert(body_.begin(), p);
-		score_++;
+		score_+= 1 - time_ / 500;
+		time_ = 0.0;
 		gen_food();
 		info_.food_pos = food_;
 		break;
@@ -359,3 +372,5 @@ class Snake
 	return false;
     }
 };
+
+#endif

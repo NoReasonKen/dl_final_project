@@ -117,10 +117,10 @@ class NN
 		return os;
 	}
 
-	std::vector<std::vector<std::vector<double>>>& weight;
-	std::vector<std::vector<double>> neuron;
-	std::vector<double> out_neuron;
-	std::vector<std::vector<double>> out_weight;
+	std::vector<std::vector<std::vector<float>>> weight;
+	std::vector<std::vector<float>> neuron;
+	std::vector<float> out_neuron;
+	std::vector<std::vector<float>> out_weight;
 	
 	float dot(std::vector<float> v1, std::vector<float> v2)
 	{

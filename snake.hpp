@@ -13,15 +13,15 @@ class Snake
     using Point = std::pair<size_t, size_t>;
     struct Info
     {
-	Point food_pos;
-	std::vector<unsigned> distance;
+	std::vector<bool> food_dist;
+	std::vector<bool> dist;
 	bool is_over;
     };
     enum class Direction {left, right, up, down, end};
     enum class Content {empty, body, food, end};
     
   private:
-    const unsigned body_reserve_length = 32;
+    const static unsigned body_reserve_length = 32;
     const std::vector<Point> default_snake_pos 
 	{ {20, 8}, {19, 8}, {18, 8} };
 
@@ -29,7 +29,8 @@ class Snake
     std::vector<Point> body_;
     Point food_;
     float score_;
-    unsigned time_;
+    unsigned eat_;
+    float time_;
     Direction dir_;
     Info info_;
 
@@ -196,6 +197,11 @@ class Snake
 	return score_;
     }
 
+    unsigned get_eat()
+    {
+	return eat_;
+    }
+
     Direction get_dir()
     {
 	return dir_;
@@ -221,14 +227,16 @@ class Snake
 	dir_ = Direction::right;
 	food_ = std::pair<size_t, size_t>(23, 8);
 	time_ = 0.0;
-	info_.food_pos = food_;
-	info_.distance.resize(4);
+	eat_ = 0;
+	info_.food_dist.resize(4);
+	info_.dist.resize(4);
 	info_.is_over = false;
 
 	update_board();
 	for (unsigned d(0); d < (unsigned)Direction::end; d++)
 	{
-	    info_.distance[d] = distance_to_obstacle((Direction)d);
+	    info_.dist[d] = distance_to((Direction)d, Content::body);
+	    info_.food_dist[d] = distance_to((Direction)d, Content::food);
 	}
     }
 
@@ -243,55 +251,58 @@ class Snake
 	food_.second = uid2(gen);
     }
     
-    unsigned distance_to_obstacle(Direction d)
+    bool distance_to(Direction d, Content c)
     {
 	unsigned dis(0);
 	auto& head(body_.front());
 	
-	switch (d)
+	if ()
 	{
-	    case Direction::left:
-		for (size_t i(head.first - 1); (int)i > -1; i--)
-		{
-		    if (board_[i][head.second] == Content::body)
+	    switch (d)
+	    {
+		case Direction::left:
+		    for (size_t i(head.first - 1); (int)i > -1; i--)
 		    {
-			break;
+			if (board_[i][head.second] == c)
+			{
+			    return true;
+			}
+			dis++;
 		    }
-		    dis++;
-		}
-		break;
-	    case Direction::right:
-		for (size_t i(head.first + 1); i < board_.size(); i++)
-		{
-		    if (board_[i][head.second] == Content::body)
+		    return false;
+		case Direction::right:
+		    for (size_t i(head.first + 1); i < board_.size(); i++)
 		    {
-			break;
+			if (board_[i][head.second] == c)
+			{
+			    return true;
+			}
+			dis++;
 		    }
-		    dis++;
-		}
-		break;
-	    case Direction::up:
-		for (size_t i(head.second + 1); i < board_[0].size(); i++)
-		{
-		    if (board_[head.first][i] == Content::body)
+		    return false;
+		case Direction::up:
+		    for (size_t i(head.second + 1); i < board_[0].size(); i++)
 		    {
-			break;
+			if (board_[head.first][i] == c)
+			{
+			    return true;
+			}
+			dis++;
 		    }
-		    dis++;
-		}
-		break;
-	    case Direction::down:
-		for (size_t i(head.second - 1); (int)i > -1; i--)
-		{
-		    if (board_[head.first][i] == Content::body)
+		    return false;
+		case Direction::down:
+		    for (size_t i(head.second - 1); (int)i > -1; i--)
 		    {
-			break;
+			if (board_[head.first][i] == c)
+			{
+			    return true;
+			}
+			dis++;
 		    }
-		    dis++;
-		}
-		break;
-	    default:
-		std::cerr << "Content reach end while normal using\n";
+		    return false;
+		default:
+		    std::cerr << "Content reach end while normal using\n";
+	    }
 	}
 
 	return dis;
@@ -324,10 +335,10 @@ class Snake
 		}
 	    case Content::food:
 		body_.insert(body_.begin(), p);
+		eat_++;
 		score_+= 1 - time_ / 500;
 		time_ = 0.0;
 		gen_food();
-		info_.food_pos = food_;
 		break;
 	    case Content::body:
 		info_.is_over = true;
@@ -339,7 +350,8 @@ class Snake
 	update_board();
 	for (unsigned i(0); i < (unsigned)Direction::end; i++)
 	{
-	    info_.distance[i] = distance_to_obstacle((Direction)i);
+	    info_.dist[i] = distance_to((Direction)i, Content::body);
+	    info_.food_dist[i] = distance_to((Direction)i, Content::food);
 	}
     }
 

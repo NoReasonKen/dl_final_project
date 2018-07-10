@@ -2,32 +2,29 @@
 #define EA_HPP_
 
 #include <algorithm>
+#include <fstream>
 #include <random>
+#include <string>
 #include <vector>
 
 class EA
 {
   public:
-    using Weights = std::vector<
-			std::vector<
-			    std::vector<float>
-			>
-		    >;
+    using Weights = std::vector<float>;
   
   private: 
-    unsigned weights_count_;
     std::mt19937 gen_{std::random_device()()};
     std::uniform_real_distribution<> 
 	urd_{std::nextafterf(-1.0, -2.0), std::nextafterf(1.0, 2.0)};
   public: 
-    const static unsigned parent_pop = 100;
-    const static unsigned child_pop = 500;
+    const static unsigned parent_pop = 50;
+    const static unsigned child_pop = 450;
     const static unsigned pop = parent_pop + child_pop;
     std::vector<Weights> people_weights;
 
     EA (const std::vector<Weights>& vw)
     {
-	update_weights(vw);
+	people_weights = vw;
     }
 
     void cross_over(const std::vector<float>& score, 
@@ -36,18 +33,35 @@ class EA
 	for (size_t i(parent_pop); i < parent_pop + child_pop; i++)
 	{
 	    std::bernoulli_distribution bd1(0.5), bd2(cross_over_rate);
+	    std::uniform_int_distribution<> 
+		uid(0, people_weights[0].size() - 1);
 
 	    auto& f(people_weights[RW_select(score)]), 
 		    m(people_weights[RW_select(score)]);
 
 	    if (bd2(gen_))
 	    {
+		size_t pos(uid(gen_));
 		switch ((unsigned)bd1(gen_))
 		{
 		    case 0:
 			people_weights[i] = f;
+
+			for (size_t j(pos); j < people_weights[i].size(); j++)
+			{
+			    people_weights[i][j] = m[j];
+			}
+
+			break;
 		    case 1:
 			people_weights[i] = m;
+
+			for (size_t j(pos); j < people_weights[i].size(); j++)
+			{
+			    people_weights[i][j] = f[j];
+			}
+
+			break;
 		}
 	    }
 	}
@@ -57,16 +71,17 @@ class EA
     {
 	std::bernoulli_distribution bd(mutate_rate);
 	std::uniform_int_distribution<> 
-	    uid1(0, people_weights[0].size() - 1),
-	    uid2(0, people_weights[0][0].size() - 1),
-	    uid3(0, people_weights[0][0][0].size() - 1);
+	    uid(0, people_weights[0].size() - 1);
 
 	for (size_t i(parent_pop); i < child_pop + parent_pop; i++)
 	{
-	    if (bd(gen_))
+	    for (size_t i(0); i < people_weights.size() / 40; i++)
 	    {
-		size_t p1(uid1(gen_)), p2(uid2(gen_)), p3(uid3(gen_));
-		people_weights[i][p1][p2][p3] += urd_(gen_);
+		if (bd(gen_))
+		{
+		    size_t pos(uid(gen_));
+		    people_weights[i][pos] += urd_(gen_);
+		}
 	    }
 	}	
     }
@@ -75,10 +90,10 @@ class EA
     {
 	for (size_t i(0); i < parent_pop; i++)
 	{
-	    for (auto& i : people_weights[i])
-		for (auto& j : i)
-		    for (auto& k : j)
-			k = urd_(gen_);
+	    for (auto& j : people_weights[i])
+	    {
+		j = urd_(gen_);
+	    }
 	}
     }
 
@@ -100,14 +115,21 @@ class EA
 	}
     }
 
-  private:
-    void update_weights(const std::vector<Weights>& vw)
+    void save_weight(const std::string& file_name)
     {
-	people_weights = vw;
-	weights_count_ = vw[0].size() * vw[0][0].size() 
-			* vw[0][0][0].size();
+	std::ofstream ofs(file_name + ".w");
+
+	for (size_t i(0); i < parent_pop; i++)
+	{
+	    for (auto& j : people_weights[i])
+	    {
+		ofs << j << " ";
+	    }
+	    ofs << "\n";
+	}
     }
 
+  private:
     size_t RW_select(const std::vector<float>& score)
     {
 	auto min(std::min_element(score.begin(), 
@@ -131,6 +153,8 @@ class EA
 		return i;
 	    }
 	}
+
+	return 0;
     }
 };
 

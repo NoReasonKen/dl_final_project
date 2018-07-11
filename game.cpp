@@ -3,13 +3,14 @@
 #include "ea.hpp"
 #include <algorithm>
 
-#define I_CH 8
-#define H_LAYER_NUM 3
-#define H_LAYER_CH 8
+#define I_CH 4
+#define H_LAYER_NUM 1
+#define H_LAYER_CH 4
 #define O_CH 4
 #define EPOCH 10000
 
 void play(Snake&, Snake::Info&, NN&);
+inline float relu(const float);
 
 int main()
 {
@@ -32,12 +33,11 @@ int main()
 		ea.people_weights[p_idx]);
 
 	info = game.get_info(); 
-	nn.init(info);
 	play(game, info, nn);
 	score[p_idx] = game.get_score();
     } 
 
-    ea.cross_over(score);
+    //ea.cross_over(score);
     ea.mutate();
 
     for (unsigned epoch(1); epoch < EPOCH; epoch++)
@@ -68,7 +68,7 @@ int main()
 	//std::string str;
 	//std::cin >> str;
 
-	ea.cross_over(score);
+	//ea.cross_over(score);
 	ea.mutate();
 
 	if (epoch % 100 == 0)
@@ -98,8 +98,11 @@ int main()
 
 void play(Snake& game, Snake::Info& info, NN& nn)
 {
+    Snake::Point head, food;
+    float dist;
     while (!info.is_over)
     {
+	nn.init(info);
 	nn.forward();
 	info = game.a_step
 	(
@@ -109,10 +112,35 @@ void play(Snake& game, Snake::Info& info, NN& nn)
 		std::max_element
 		(
 		    nn.out_neuron.begin(), 
-		    nn.out_neuron.begin() + 4
+		    nn.out_neuron.end()
 		)
 	    )
 	);
-	nn.init(info);
+
+	head = game.get_body().front();
+	food = game.get_food();
+	dist = Snake::point_dist(head, food);
+	nn.back_prop
+	(
+	    std::vector<float>{
+		relu(head.first - food.first) / dist, 
+		relu(food.first - head.first) / dist, 
+		relu(food.second - head.second) / dist, 
+		relu(head.second - food.second) / dist
+	    }, 
+	    0.5
+	);
+    }
+}
+
+inline float relu(const float x)
+{
+    if (x < 0)
+    {
+	return 0;
+    }
+    else
+    {
+	return x;
     }
 }

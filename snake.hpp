@@ -1,6 +1,7 @@
 #ifndef SNAKE_HPP_
 #define SNAKE_HPP_
 
+#include <cmath>
 #include <iostream>
 #include <random>
 #include <string>
@@ -13,8 +14,8 @@ class Snake
     using Point = std::pair<size_t, size_t>;
     struct Info
     {
-	std::vector<bool> food_dist;
-	std::vector<bool> dist;
+	std::vector<unsigned> food_dist;
+	//std::vector<unsigned> dist;
 	bool is_over;
     };
     enum class Direction {left, right, up, down, end};
@@ -177,42 +178,48 @@ class Snake
 	return info_;
     }
 
-    std::vector<std::vector<Content>> get_board()
+    inline static float point_dist(Point a, Point b)
+    {
+	return std::sqrt(std::pow(a.first - b.first, 2) +
+			std::pow(a.second - b.second, 2));
+    }
+
+    inline std::vector<std::vector<Content>> get_board()
     {
 	return board_;
     }
 
-    std::vector<Point> get_body()
+    inline std::vector<Point> get_body()
     {
 	return body_;
     }
 
-    Point get_food()
+    inline Point get_food()
     {
 	return food_;
     }
 
-    float get_score()
+    inline float get_score()
     {
 	return score_;
     }
 
-    unsigned get_eat()
+    inline unsigned get_eat()
     {
 	return eat_;
     }
 
-    Direction get_dir()
+    inline Direction get_dir()
     {
 	return dir_;
     }
 
-    void set_dir(Direction d)
+    inline void set_dir(Direction d)
     {
 	dir_ = d;
     }
 
-    Info get_info()
+    inline Info get_info()
     {
 	return info_;
     }
@@ -229,13 +236,13 @@ class Snake
 	time_ = 0.0;
 	eat_ = 0;
 	info_.food_dist.resize(4);
-	info_.dist.resize(4);
+	//info_.dist.resize(4);
 	info_.is_over = false;
 
 	update_board();
 	for (unsigned d(0); d < (unsigned)Direction::end; d++)
 	{
-	    info_.dist[d] = distance_to((Direction)d, Content::body);
+	    //info_.dist[d] = distance_to((Direction)d, Content::body);
 	    info_.food_dist[d] = distance_to((Direction)d, Content::food);
 	}
     }
@@ -251,61 +258,97 @@ class Snake
 	food_.second = uid2(gen);
     }
     
-    bool distance_to(Direction d, Content c)
+    unsigned distance_to(Direction d, Content c)
     {
-	unsigned dis(0);
+	//unsigned dis(0);
 	auto& head(body_.front());
 	
-	if ()
+	switch (d)
 	{
-	    switch (d)
-	    {
-		case Direction::left:
-		    for (size_t i(head.first - 1); (int)i > -1; i--)
+	    case Direction::left:
+		if (food_.first < head.first)
+		{
+		    return head.first - food_.first;
+		}
+		else
+		{
+		    return 0;
+		}
+		/*
+		for (size_t i(head.first - 1); (int)i > -1; i--)
+		{
+		    if (board_[i][head.second] == c)
 		    {
-			if (board_[i][head.second] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return dis;
 		    }
-		    return false;
-		case Direction::right:
-		    for (size_t i(head.first + 1); i < board_.size(); i++)
+		    dis++;
+		}
+		return dis;
+		*/
+	    case Direction::right:
+		if (food_.first > head.first)
+		{
+		    return food_.first - head.first;
+		}
+		else
+		{
+		    return 0;
+		}
+		/*
+		for (size_t i(head.first + 1); i < board_.size(); i++)
+		{
+		    if (board_[i][head.second] == c)
 		    {
-			if (board_[i][head.second] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return dis;
 		    }
-		    return false;
-		case Direction::up:
-		    for (size_t i(head.second + 1); i < board_[0].size(); i++)
+		    dis++;
+		}
+		return dis;
+		*/
+	    case Direction::up:
+		if (food_.second > head.second)
+		{
+		    return food_.second - head.second;
+		}
+		else
+		{
+		    return 0;
+		}
+		/*
+		for (size_t i(head.second + 1); i < board_[0].size(); i++)
+		{
+		    if (board_[head.first][i] == c)
 		    {
-			if (board_[head.first][i] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return dis;
 		    }
-		    return false;
-		case Direction::down:
-		    for (size_t i(head.second - 1); (int)i > -1; i--)
+		    dis++;
+		}
+		return dis;
+		*/
+	    case Direction::down:
+		if (food_.second < head.second)
+		{
+		    return head.second - food_.second;
+		}
+		else
+		{
+		    return 0;
+		}
+		/*
+		for (size_t i(head.second - 1); (int)i > -1; i--)
+		{
+		    if (board_[head.first][i] == c)
 		    {
-			if (board_[head.first][i] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return dis;
 		    }
-		    return false;
-		default:
-		    std::cerr << "Content reach end while normal using\n";
-	    }
+		    dis++;
+		}
+		return dis;
+		*/
+	    default:
+		std::cerr << "Content reach end while normal using\n";
+		return 0;
 	}
-
-	return dis;
     }
 
     void check_next_point(Point p)
@@ -350,7 +393,7 @@ class Snake
 	update_board();
 	for (unsigned i(0); i < (unsigned)Direction::end; i++)
 	{
-	    info_.dist[i] = distance_to((Direction)i, Content::body);
+	    //info_.dist[i] = distance_to((Direction)i, Content::body);
 	    info_.food_dist[i] = distance_to((Direction)i, Content::food);
 	}
     }

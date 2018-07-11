@@ -14,8 +14,6 @@ class EA
   
   private: 
     std::mt19937 gen_{std::random_device()()};
-    std::uniform_real_distribution<> 
-	urd_{std::nextafterf(-1.0, -2.0), std::nextafterf(1.0, 2.0)};
   public: 
     const static unsigned parent_pop = 50;
     const static unsigned child_pop = 450;
@@ -75,19 +73,25 @@ class EA
 
 	for (size_t i(parent_pop); i < child_pop + parent_pop; i++)
 	{
-	    for (size_t i(0); i < people_weights.size() / 40; i++)
+	    if (bd(gen_))
 	    {
-		if (bd(gen_))
-		{
-		    size_t pos(uid(gen_));
-		    people_weights[i][pos] += urd_(gen_);
-		}
+		size_t pos(uid(gen_));
+		auto& w(people_weights[i][pos]);
+		std::uniform_real_distribution<> urd_
+		(
+		    std::nextafterf(0, -1), 
+		    std::nextafterf(1, 2)
+		);
+
+		w = urd_(gen_);
 	    }
 	}	
     }
 
     void init_people()
     {
+	std::uniform_real_distribution<> 
+	    urd_{std::nextafterf(0, -1), std::nextafterf(1, 2)};
 	for (size_t i(0); i < parent_pop; i++)
 	{
 	    for (auto& j : people_weights[i])

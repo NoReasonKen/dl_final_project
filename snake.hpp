@@ -1,6 +1,7 @@
 #ifndef SNAKE_HPP_
 #define SNAKE_HPP_
 
+#include <cmath>
 #include <iostream>
 #include <random>
 #include <string>
@@ -156,6 +157,11 @@ class Snake
 
 	auto& head(body_.front());
 
+	if (!(info_.food_dist[(size_t)dir]))
+	{
+	    score_ -= 0.5;
+	}
+
 	switch (dir_)
 	{
 	    case Direction::left:
@@ -256,50 +262,106 @@ class Snake
 	unsigned dis(0);
 	auto& head(body_.front());
 	
-	if ()
+	if (c == Content::body)
 	{
 	    switch (d)
 	    {
 		case Direction::left:
-		    for (size_t i(head.first - 1); (int)i > -1; i--)
+		    if (head.first == 0 || 
+			board_[head.first - 1][head.second] == c)
 		    {
-			if (board_[i][head.second] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return true;
 		    }
-		    return false;
+		    else
+		    {
+			return false;
+		    }
 		case Direction::right:
-		    for (size_t i(head.first + 1); i < board_.size(); i++)
+		    if (head.first == board_.size() - 1 || 
+			board_[head.first + 1][head.second] == c)
 		    {
-			if (board_[i][head.second] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return true;
 		    }
-		    return false;
+		    else
+		    {
+			return false;
+		    }
 		case Direction::up:
-		    for (size_t i(head.second + 1); i < board_[0].size(); i++)
+		    if (head.second == board_[0].size() - 1 || 
+			board_[head.first][head.second + 1] == c)
 		    {
-			if (board_[head.first][i] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return true;
 		    }
-		    return false;
+		    else
+		    {
+			return false;
+		    }
 		case Direction::down:
-		    for (size_t i(head.second - 1); (int)i > -1; i--)
+		    if (head.second == 0 || 
+			board_[head.first][head.second - 1] == c)
 		    {
-			if (board_[head.first][i] == c)
-			{
-			    return true;
-			}
-			dis++;
+			return true;
 		    }
-		    return false;
+		    else
+		    {
+			return false;
+		    }
+		default:
+		    std::cerr << "Content reach end while normal using\n";
+	    }
+	}
+	else
+	{
+	    switch (d)
+	    {
+		case Direction::left:
+		    if (food_.first < head.first && 
+			std::labs((int)food_.first - (int)head.first) > 
+			std::labs((int)food_.second - (int)head.second)
+			)
+		    {
+			return true;
+		    }
+		    else
+		    {
+			return false;
+		    }
+		case Direction::right:
+		    if (food_.first > head.first && 
+			std::labs((int)food_.first - (int)head.first) > 
+			std::labs((int)food_.second - (int)head.second)
+			)
+		    {
+			return true;
+		    }
+		    else
+		    {
+			return false;
+		    }
+		case Direction::up:
+		    if (food_.second > head.second && 
+			std::labs((int)food_.first - (int)head.first) < 
+			std::labs((int)food_.second - (int)head.second)
+			)
+		    {
+			return true;
+		    }
+		    else
+		    {
+			return false;
+		    }
+		case Direction::down:
+		    if (food_.second < head.second && 
+			std::labs((int)food_.first - (int)head.first) < 
+			std::labs((int)food_.second - (int)head.second)
+			)
+		    {
+			return true;
+		    }
+		    else
+		    {
+			return false;
+		    }
 		default:
 		    std::cerr << "Content reach end while normal using\n";
 	    }

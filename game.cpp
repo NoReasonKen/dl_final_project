@@ -3,9 +3,9 @@
 #include "ea.hpp"
 #include <algorithm>
 
-#define I_CH 8
-#define H_LAYER_NUM 3
-#define H_LAYER_CH 8
+#define I_CH 4
+#define H_LAYER_NUM 1
+#define H_LAYER_CH 7
 #define O_CH 4
 #define EPOCH 10000
 
@@ -14,6 +14,7 @@ void play(Snake&, Snake::Info&, NN&);
 int main()
 {
     std::vector<float> score(EA::pop);
+    std::vector<unsigned> eat(EA::pop);
     Snake::Info info;
 
     const unsigned weight_count((I_CH + (H_LAYER_NUM - 1) 
@@ -35,9 +36,10 @@ int main()
 	nn.init(info);
 	play(game, info, nn);
 	score[p_idx] = game.get_score();
+	eat[p_idx] = game.get_eat();
     } 
 
-    ea.cross_over(score);
+    //ea.cross_over(score);
     ea.mutate();
 
     for (unsigned epoch(1); epoch < EPOCH; epoch++)
@@ -54,21 +56,22 @@ int main()
 	    nn.init(info);
 	    play(game, info, nn);
 	    score[p_idx] = game.get_score();
+	    eat[p_idx] = game.get_eat();
 	}
 
-	ea.selection_sort(score);
+	ea.selection_sort(score, eat);
 
-	std::cout << "score: ";
+	std::cout << "eat: ";
 	for (size_t i(0); i < EA::parent_pop; i++)
 	{
-	    std::cout << score[i] << " ";
+	    std::cout << eat[i] << " ";
 	}
 	std::cout << "\n";
 
 	//std::string str;
 	//std::cin >> str;
 
-	ea.cross_over(score);
+	//ea.cross_over(score);
 	ea.mutate();
 
 	if (epoch % 100 == 0)

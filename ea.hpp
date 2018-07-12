@@ -75,13 +75,10 @@ class EA
 
 	for (size_t i(parent_pop); i < child_pop + parent_pop; i++)
 	{
-	    for (size_t i(0); i < people_weights.size() / 40; i++)
+	    if (bd(gen_))
 	    {
-		if (bd(gen_))
-		{
-		    size_t pos(uid(gen_));
-		    people_weights[i][pos] += urd_(gen_);
-		}
+		size_t pos(uid(gen_));
+		people_weights[i][pos] = urd_(gen_);
 	    }
 	}	
     }
@@ -97,7 +94,7 @@ class EA
 	}
     }
 
-    void selection_sort(std::vector<float>& score)
+    void selection_sort(std::vector<float>& score, std::vector<unsigned>& eat)
     {
 	for (size_t i(0); i < parent_pop; i++)
 	{
@@ -111,6 +108,7 @@ class EA
 	    }
 
 	    std::swap(score[i], score[max_idx]);
+	    std::swap(eat[i], eat[max_idx]);
 	    std::swap(people_weights[i], people_weights[max_idx]);
 	}
     }

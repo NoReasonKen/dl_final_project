@@ -10,7 +10,6 @@
 
 class NN
 {
-
     /*
      * after create NN, you should use init() to initialize all parameter of all weight
      * use forward() will calculate all neuron
@@ -19,39 +18,31 @@ class NN
     public:
 	NN(uint32_t layer, uint32_t in_neu, uint32_t neu, uint32_t out_neu, const std::vector<float>& w): 
 	    input_weight(neu, std::vector<float>(in_neu)), 
-
 	    weight(layer - 3, std::vector<std::vector<float>>(neu, std::vector<float>(neu))),
 	    out_weight(out_neu, std::vector<float>(neu)),
 	    input_neuron(in_neu),
 	    neuron(layer - 2, std::vector<float>(neu)),
 	    out_neuron(out_neu)
-	    {
-		uint32_t cnt = 0;
-		for(uint32_t i = 0; i != neu; ++i)
-		    for(uint32_t j = 0; j != in_neu; ++j, ++cnt)
-			input_weight[i][j] = w[cnt];
+	{
+	    uint32_t cnt = 0;
+	    for(uint32_t i = 0; i != neu; ++i)
+		for(uint32_t j = 0; j != in_neu; ++j, ++cnt)
+		    input_weight[i][j] = w[cnt];
 
-		for(uint32_t i = 0; i != weight.size(); ++i)
-		    for(uint32_t j = 0; j != weight[i].size(); ++j)
-			for(uint32_t k = 0; k != weight[i][j].size(); ++k, ++cnt)
-			    weight[i][j][k] = w[cnt];
+	    for(uint32_t i = 0; i != weight.size(); ++i)
+		for(uint32_t j = 0; j != weight[i].size(); ++j)
+		    for(uint32_t k = 0; k != weight[i][j].size(); ++k, ++cnt)
+			weight[i][j][k] = w[cnt];
 
-		for(uint32_t i = 0; i != out_weight.size(); ++i)
-		    for(uint32_t j = 0; j != out_weight[i].size(); ++j, ++cnt)
-			out_weight[i][j] = w[cnt];
-
-	    }
+	    for(uint32_t i = 0; i != out_weight.size(); ++i)
+		for(uint32_t j = 0; j != out_weight[i].size(); ++j, ++cnt)
+		    out_weight[i][j] = w[cnt];
+	}
 
 	// initialize, you should input the input neuron
-
-	void init(Snake::Info info)
+	void init(const Snake::Info& info)
 	{
 	    for (size_t i(0); i < 4; i++)
-	    {
-
-		input_neuron[i] = info.dist[i];
-	    }
-	    for (size_t i(4); i < 8; i++)
 	    {
 		input_neuron[i] = info.food_dist[i];
 	    }
@@ -60,21 +51,22 @@ class NN
 	void forward()
 	{
 	    for(uint32_t i = 0; i != neuron.size(); ++i)
-
+	    {
 		for(uint32_t j = 0; j != neuron[i].size(); ++j)
 		{
 		    if(!i)
-			neuron[0][j] = dot(input_neuron, input_weight[j]);
+			neuron[0][j] = sigmoid(dot(input_neuron, input_weight[j]));
 
 		    else
-			neuron[i][j] = dot(neuron[i - 1], weight[i - 1][j]);
+			neuron[i][j] = sigmoid(dot(neuron[i - 1], weight[i - 1][j]));
 		}
+	    }
 
 	    for(uint32_t i = 0; i != out_neuron.size(); ++i)
-		out_neuron[i] = dot(neuron[neuron.size() - 1], out_weight[i]);
+		out_neuron[i] = sigmoid(dot(neuron[neuron.size() - 1], out_weight[i]));
 	}
 
-	void back_prop(std::vector<float> predict, float learn_rate)
+	void back_prop(std::vector<float>&& predict, float learn_rate)
 	{
 	    std::vector<std::vector<float>> delta(neuron.size(), std::vector<float>(neuron[0].size()));
 	    std::vector<float> out_delta(out_neuron.size());

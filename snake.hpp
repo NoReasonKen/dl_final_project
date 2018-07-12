@@ -48,50 +48,6 @@ class Snake
 	init_board(board_h, board_w);
     }
 
-    Snake(const Snake& sn)
-	: board_(sn.board_)
-	, body_(sn.body_)
-	, food_(sn.food_)
-	, score_(sn.score_)
-	, dir_(sn.dir_)
-	, info_(sn.info_)
-    {
-    }
-
-    Snake(Snake&& sn)
-	: board_(std::move(sn.board_))
-	, body_(std::move(sn.body_))
-	, food_(std::move(sn.food_))
-	, score_(std::move(sn.score_))
-	, dir_(std::move(sn.dir_))
-	, info_(std::move(sn.info_))
-    {
-    }
-
-    Snake& operator=(const Snake& sn)
-    {
-	this->board_ = sn.board_;
-	this->body_ = sn.body_;
-	this->food_ = sn.food_;
-	this->score_ = sn.score_;
-	this->dir_ = sn.dir_;
-	this->info_ = sn.info_;
-
-	return *this;
-    }
-
-    Snake& operator=(Snake&& sn)
-    {
-	this->board_ = std::move(sn.board_);
-	this->body_ = std::move(sn.body_);
-	this->food_ = std::move(sn.food_);
-	this->score_ = std::move(sn.score_);
-	this->dir_ = std::move(sn.dir_);
-	this->info_ = std::move(sn.info_);
-
-	return *this;
-    }
-
     friend std::ostream& operator<<(std::ostream& os, const Snake& sn)
     {
 	std::string buf("");
@@ -183,10 +139,10 @@ class Snake
 	return info_;
     }
 
-    inline static float point_dist(Point a, Point b)
+    inline static float point_dist(const Point &a, const Point& b)
     {
-	return std::sqrt(std::pow(a.first - b.first, 2) +
-			std::pow(a.second - b.second, 2));
+	return std::sqrt(std::pow((int)a.first - (int)b.first, 2) +
+			std::pow((int)a.second - (int)b.second, 2));
     }
 
     inline std::vector<std::vector<Content>> get_board()
@@ -259,8 +215,12 @@ class Snake
 	std::uniform_int_distribution<size_t> 
 	    uid1(0, board_.size() - 1), uid2(0, board_[0].size() - 1);
 
-	food_.first = uid1(gen);
-	food_.second = uid2(gen);
+	do
+	{
+	    food_.first = uid1(gen);
+	    food_.second = uid2(gen);
+	}
+	while(board_[food_.first][food_.second] == Content::body);
     }
     
     unsigned distance_to(Direction d, Content c)
@@ -383,6 +343,8 @@ class Snake
 		}
 	    case Content::food:
 		body_.insert(body_.begin(), p);
+		board_[body_.front().first][body_.front().second]
+		    = Content::body;
 		eat_++;
 		score_+= 1 - time_ / 500;
 		time_ = 0.0;
@@ -412,7 +374,7 @@ class Snake
 	board_[food_.first][food_.second] = Content::food;
     }
 
-    bool is_backward(Direction dir)
+  public:bool is_backward(Direction dir)
     {
 	if ((int)dir_ % 2 == 0)
 	{
@@ -428,7 +390,6 @@ class Snake
 		return true;
 	    }
 	}
-
 	return false;
     }
 };

@@ -37,6 +37,7 @@ class NN
 	    for(uint32_t i = 0; i != out_weight.size(); ++i)
 		for(uint32_t j = 0; j != out_weight[i].size(); ++j, ++cnt)
 		    out_weight[i][j] = w[cnt];
+	    ;
 	}
 
 	// initialize, you should input the input neuron
@@ -66,7 +67,7 @@ class NN
 		out_neuron[i] = sigmoid(dot(neuron[neuron.size() - 1], out_weight[i]));
 	}
 
-	void back_prop(std::vector<float>&& predict, float learn_rate)
+	void back_prop(std::vector<float>& predict, float learn_rate)
 	{
 	    std::vector<std::vector<float>> delta(neuron.size(), std::vector<float>(neuron[0].size()));
 	    std::vector<float> out_delta(out_neuron.size());
@@ -107,7 +108,7 @@ class NN
 	{
 	    uint32_t cnt = 0;
 	    for(uint32_t i = 0; i != input_weight.size(); ++i)
-		for(uint32_t j = 0; j != input_weight[i].size(); ++i, ++cnt)
+		for(uint32_t j = 0; j != input_weight[i].size(); ++j, ++cnt)
 		    w[cnt] = input_weight[i][j];
 
 	    for(uint32_t i = 0; i != weight.size(); ++i)
